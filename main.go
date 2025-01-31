@@ -29,19 +29,14 @@ type InputPayload struct {
 
 // OutputPayload represents the structure of the processed data
 type OutputPayload struct {
-	Headers      map[string]string      `json:"headers"`
-	ResponseBody map[string]interface{} `json:"responseBody,omitempty"`
-	Body         string                 `json:"body,omitempty"`
+	URL          string                 `json:"url"`
+	Error        string                 `json:"error,omitempty"`
+	Headers      map[string]string      `json:"headers,omitempty"`
+	ResponseJson map[string]interface{} `json:"responseJson,omitempty"`
+	ResponseBody string                 `json:"responseBody,omitempty"`
 	ResponseTime int64                  `json:"responseTime"` // in milliseconds
 	RequestTime  time.Time              `json:"requestTime"`
 	StatusCode   int                    `json:"statusCode"`
-}
-
-// ErrorPayload represents the structure of an error message
-type ErrorPayload struct {
-	Error        string    `json:"error"`
-	OriginalData string    `json:"originalData,omitempty"`
-	RequestTime  time.Time `json:"requestTime"`
 }
 
 // publishMessage currently logs the message. This can be extended in the future.
@@ -188,6 +183,7 @@ func fetchURL(url string) (*OutputPayload, error) {
 	}
 
 	var output OutputPayload
+	output.URL = url
 	output.Headers = headers
 	output.ResponseTime = responseTime
 	output.RequestTime = startTime
@@ -196,10 +192,10 @@ func fetchURL(url string) (*OutputPayload, error) {
 	// Attempt to parse the body as JSON
 	var jsonBody map[string]interface{}
 	if err := json.Unmarshal(bodyBytes, &jsonBody); err == nil {
-		output.ResponseBody = jsonBody
+		output.ResponseJson = jsonBody
 	} else {
 		// If not JSON, store the raw body as a string
-		output.Body = string(bodyBytes)
+		output.ResponseBody = string(bodyBytes)
 	}
 
 	return &output, nil
@@ -212,11 +208,11 @@ func isValidURL(url string) bool {
 }
 
 // publishErrorMessage logs an error message variant
-func publishErrorMessage(errorMsg string, originalData string) {
-	errorPayload := ErrorPayload{
-		Error:        errorMsg,
-		OriginalData: originalData,
-		RequestTime:  time.Now(),
+func publishErrorMessage(errorMsg string, url string) {
+	errorPayload := OutputPayload{
+		URL:         url,
+		Error:       errorMsg,
+		RequestTime: time.Now(),
 	}
 	publishMessage(errorPayload)
 }
