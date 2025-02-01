@@ -2,13 +2,17 @@
 package main
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
+
+	"cloud.google.com/go/pubsub"
 )
 
 // PubSubMessage represents the structure of a Pub/Sub push message
@@ -39,14 +43,46 @@ type OutputPayload struct {
 	StatusCode   int                    `json:"statusCode"`
 }
 
-// publishMessage currently logs the message. This can be extended in the future.
+// Updated publishMessage now publishes to the Pub/Sub topic if RESPONSE_PUBSUB is set.
 func publishMessage(message interface{}) {
 	messageJSON, err := json.Marshal(message)
 	if err != nil {
 		log.Printf("Error marshalling message for publishing: %v", err)
 		return
 	}
-	log.Printf("Publish Message: %s", string(messageJSON))
+
+	topicName := os.Getenv("RESPONSE_PUBSUB")
+	if topicName == "" {
+		log.Printf("Publish Message: %s", string(messageJSON))
+		return
+	}
+
+	projectID := os.Getenv("GOOGLE_CLOUD_PROJECT")
+	if projectID == "" {
+		log.Printf("GOOGLE_CLOUD_PROJECT env variable not set, cannot publish to PubSub")
+		log.Printf("Publish Message: %s", string(messageJSON))
+		return
+	}
+
+	ctx := context.Background()
+	client, err := pubsub.NewClient(ctx, projectID)
+	if err != nil {
+		log.Printf("Error creating PubSub client: %v", err)
+		log.Printf("Publish Message: %s", string(messageJSON))
+		return
+	}
+
+	topic := client.Topic(topicName)
+	result := topic.Publish(ctx, &pubsub.Message{
+		Data:       messageJSON,
+		Attributes: map[string]string{"type": "request"},
+	})
+	id, err := result.Get(ctx)
+	if err != nil {
+		log.Printf("Error publishing message to PubSub: %v", err)
+	} else {
+		log.Printf("Published message with ID: %s", id)
+	}
 }
 
 func main() {
