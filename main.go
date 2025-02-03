@@ -33,13 +33,14 @@ type InputPayload struct {
 
 // OutputPayload represents the structure of the processed data
 type OutputPayload struct {
-	URL          string    `json:"url"`
-	Error        string    `json:"error,omitempty"`
-	Headers      string    `json:"headers,omitempty"`
-	ResponseBody string    `json:"responseBody,omitempty"`
-	ResponseTime int64     `json:"responseTime"` // in milliseconds
-	RequestTime  time.Time `json:"requestTime"`
-	StatusCode   int       `json:"statusCode"`
+	URL          string `json:"url"`
+	Error        string `json:"error,omitempty"`
+	Headers      string `json:"headers,omitempty"`
+	ResponseBody string `json:"responseBody,omitempty"`
+	ResponseJson string `json:"responseJson,omitempty"`
+	ResponseTime int64  `json:"responseTime"` // in milliseconds
+	RequestTime  string `json:"requestTime"`
+	StatusCode   int    `json:"statusCode"`
 }
 
 // Updated publishMessage now publishes to the Pub/Sub topic if RESPONSE_PUBSUB is set.
@@ -227,9 +228,14 @@ func fetchURL(url string) (*OutputPayload, error) {
 	output.URL = url
 	output.Headers = string(encodedHeaders)
 	output.ResponseTime = responseTime
-	output.RequestTime = startTime
+	output.RequestTime = startTime.UTC().Format(time.RFC3339Nano)
 	output.StatusCode = resp.StatusCode
-	output.ResponseBody = string(bodyBytes)
+
+	if json.Valid(bodyBytes) {
+		output.ResponseJson = string(bodyBytes)
+	} else {
+		output.ResponseBody = string(bodyBytes)
+	}
 
 	return &output, nil
 }
@@ -245,7 +251,7 @@ func publishErrorMessage(errorMsg string, url string) {
 	errorPayload := OutputPayload{
 		URL:         url,
 		Error:       errorMsg,
-		RequestTime: time.Now(),
+		RequestTime: time.Now().UTC().Format(time.RFC3339Nano),
 	}
 	publishMessage(errorPayload)
 }
