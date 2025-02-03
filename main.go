@@ -33,14 +33,13 @@ type InputPayload struct {
 
 // OutputPayload represents the structure of the processed data
 type OutputPayload struct {
-	URL          string                 `json:"url"`
-	Error        string                 `json:"error,omitempty"`
-	Headers      map[string]string      `json:"headers,omitempty"`
-	ResponseJson map[string]interface{} `json:"responseJson,omitempty"`
-	ResponseBody string                 `json:"responseBody,omitempty"`
-	ResponseTime int64                  `json:"responseTime"` // in milliseconds
-	RequestTime  time.Time              `json:"requestTime"`
-	StatusCode   int                    `json:"statusCode"`
+	URL          string    `json:"url"`
+	Error        string    `json:"error,omitempty"`
+	Headers      string    `json:"headers,omitempty"`
+	ResponseBody string    `json:"responseBody,omitempty"`
+	ResponseTime int64     `json:"responseTime"` // in milliseconds
+	RequestTime  time.Time `json:"requestTime"`
+	StatusCode   int       `json:"statusCode"`
 }
 
 // Updated publishMessage now publishes to the Pub/Sub topic if RESPONSE_PUBSUB is set.
@@ -212,6 +211,12 @@ func fetchURL(url string) (*OutputPayload, error) {
 		headers[key] = strings.Join(values, ", ")
 	}
 
+	// Encode headers as a JSON string
+	encodedHeaders, err := json.Marshal(headers)
+	if err != nil {
+		encodedHeaders = []byte("{}")
+	}
+
 	// Read the response body with a limit of 10MB
 	bodyBytes, err := io.ReadAll(io.LimitReader(resp.Body, 10*1024*1024)) // 10MB limit
 	if err != nil {
@@ -220,19 +225,11 @@ func fetchURL(url string) (*OutputPayload, error) {
 
 	var output OutputPayload
 	output.URL = url
-	output.Headers = headers
+	output.Headers = string(encodedHeaders)
 	output.ResponseTime = responseTime
 	output.RequestTime = startTime
 	output.StatusCode = resp.StatusCode
-
-	// Attempt to parse the body as JSON
-	var jsonBody map[string]interface{}
-	if err := json.Unmarshal(bodyBytes, &jsonBody); err == nil {
-		output.ResponseJson = jsonBody
-	} else {
-		// If not JSON, store the raw body as a string
-		output.ResponseBody = string(bodyBytes)
-	}
+	output.ResponseBody = string(bodyBytes)
 
 	return &output, nil
 }
