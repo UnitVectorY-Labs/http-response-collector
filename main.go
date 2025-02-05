@@ -38,9 +38,9 @@ type OutputPayload struct {
 	Headers      string `json:"headers,omitempty"`
 	ResponseBody string `json:"responseBody,omitempty"`
 	ResponseJson string `json:"responseJson,omitempty"`
-	ResponseTime *int64 `json:"responseTime"` // in milliseconds
+	ResponseTime *int64 `json:"responseTime,omitempty"` // in milliseconds
 	RequestTime  string `json:"requestTime"`
-	StatusCode   *int   `json:"statusCode"`
+	StatusCode   *int   `json:"statusCode,omitempty"`
 }
 
 // Updated publishMessage now publishes to the Pub/Sub topic if RESPONSE_PUBSUB is set.
