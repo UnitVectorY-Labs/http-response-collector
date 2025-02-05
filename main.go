@@ -38,9 +38,9 @@ type OutputPayload struct {
 	Headers      string `json:"headers,omitempty"`
 	ResponseBody string `json:"responseBody,omitempty"`
 	ResponseJson string `json:"responseJson,omitempty"`
-	ResponseTime int64  `json:"responseTime"` // in milliseconds
+	ResponseTime *int64 `json:"responseTime"` // in milliseconds
 	RequestTime  string `json:"requestTime"`
-	StatusCode   int    `json:"statusCode"`
+	StatusCode   *int   `json:"statusCode"`
 }
 
 // Updated publishMessage now publishes to the Pub/Sub topic if RESPONSE_PUBSUB is set.
@@ -227,9 +227,9 @@ func fetchURL(url string) (*OutputPayload, error) {
 	var output OutputPayload
 	output.URL = url
 	output.Headers = string(encodedHeaders)
-	output.ResponseTime = responseTime
+	output.ResponseTime = &responseTime
 	output.RequestTime = startTime.UTC().Format(time.RFC3339Nano)
-	output.StatusCode = resp.StatusCode
+	output.StatusCode = &resp.StatusCode
 
 	if json.Valid(bodyBytes) {
 		output.ResponseJson = string(bodyBytes)
