@@ -1,4 +1,4 @@
-module http-response-collector
+module github.com/UnitVectorY-Labs/http-response-collector
 
 go 1.24.3 // GOVERSION
 
