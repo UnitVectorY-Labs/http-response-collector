@@ -9,11 +9,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"strings"
 	"time"
 
 	"cloud.google.com/go/pubsub"
 )
+
+// Version is the application version, injected at build time via ldflags
+var Version = "dev"
 
 // PubSubMessage represents the structure of a Pub/Sub push message
 type PubSubMessage struct {
@@ -86,6 +90,17 @@ func publishMessage(message interface{}) {
 }
 
 func main() {
+	// Set the build version from the build info if not set by the build system
+	if Version == "dev" || Version == "" {
+		if bi, ok := debug.ReadBuildInfo(); ok {
+			if bi.Main.Version != "" && bi.Main.Version != "(devel)" {
+				Version = bi.Main.Version
+			}
+		}
+	}
+
+	log.Printf("Starting HTTP Response Collector - Version: %s", Version)
+
 	http.HandleFunc("/pubsub/push", pubSubHandler)
 
 	port := ":8080"
