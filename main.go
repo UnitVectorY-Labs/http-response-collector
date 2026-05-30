@@ -48,7 +48,7 @@ type OutputPayload struct {
 }
 
 // Updated publishMessage now publishes to the Pub/Sub topic if RESPONSE_PUBSUB is set.
-func publishMessage(message interface{}) {
+func publishMessage(message any) {
 	messageJSON, err := json.Marshal(message)
 	if err != nil {
 		log.Printf("Error marshalling message for publishing: %v", err)
