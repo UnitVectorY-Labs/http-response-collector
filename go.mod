@@ -2,7 +2,7 @@ module github.com/UnitVectorY-Labs/http-response-collector
 
 go 1.26 // GOVERSION
 
-require cloud.google.com/go/pubsub v1.50.4
+require cloud.google.com/go/pubsub v1.51.0
 
 require (
 	cloud.google.com/go v0.123.0 // indirect
