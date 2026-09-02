@@ -1,6 +1,6 @@
 module github.com/UnitVectorY-Labs/http-response-collector
 
-go 1.26 // GOVERSION
+go 1.27 // GOVERSION
 
 require cloud.google.com/go/pubsub v1.51.1
 
