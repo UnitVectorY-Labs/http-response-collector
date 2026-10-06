@@ -1,0 +1,14 @@
+name: "http-response-collector"
+default_branch: "main"
+config:
+  description: "Retrieves HTTP responses and headers from specified endpoints and publishes the collected data to Google Cloud Pub/Sub for further processing."
+  license: "MIT"
+  language: "go"
+  release: "docker-go"
+  release_github: false
+  status: "wip"
+  justfile: false
+  codecov:
+    enabled: true
+  docs:
+    enabled: false
