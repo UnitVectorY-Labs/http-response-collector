@@ -4,7 +4,8 @@ package main
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
+	"encoding/json/jsontext"
+	"encoding/json/v2"
 	"io"
 	"log"
 	"net/http"
@@ -246,7 +247,7 @@ func fetchURL(url string) (*OutputPayload, error) {
 	output.RequestTime = startTime.UTC().Format(time.RFC3339Nano)
 	output.StatusCode = resp.StatusCode
 
-	if json.Valid(bodyBytes) {
+	if jsontext.Value(bodyBytes).IsValid() {
 		output.ResponseJson = string(bodyBytes)
 	} else {
 		output.ResponseBody = string(bodyBytes)
